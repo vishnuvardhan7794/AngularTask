@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  selectionArray = ["[P>E , E>R , R>U]", "[I>N, A>I, P>A, S>P]"]
+  selectionArray = ['["P>E" , "E>R" , "R>U"]', '["I>N", "A>I", "P>A", "S>P"]']
   mainArray = [["P>E", "E>R", "R>U"], ["I>N", "A>I", "P>A", "S>P"]];
   afterSelection = [];
   temArray = [];
@@ -17,26 +17,14 @@ export class AppComponent {
   }
   display() {
     this.temArray = [];
-    this.afterSelection.forEach((ele) => {
+    this.afterSelection.forEach((ele, index) => {
       let elements = ele.split('>');
-      if (this.temArray.length === 0) {
-        this.temArray = [...this.temArray, ...elements];
-      } else {
-        let elementsObj = this.findElement(this.temArray, elements);
-        if (elementsObj.firstElementIndex == -1 && elementsObj.secondElementIndex == -1) {
-          this.temArray = [...this.temArray, ...elementsObj.array];
-        }
-        else if (elementsObj.firstElementIndex == -1) {
-          this.temArray.splice(elementsObj.secondElementIndex, 0, elementsObj.array[0])
-        }
-        else if (elementsObj.secondElementIndex == -1) {
-          this.temArray.splice(elementsObj.firstElementIndex + 1, 0, elementsObj.array[0])
-        }
+      this.temArray = [...this.temArray, ...elements];
+      if (index == this.afterSelection.length - 1) {
+        this.temArray = Array.from(new Set(this.temArray))
+        this.finalResult()
       }
     })
-    let finalList = Array.from(new Set(this.temArray));
-    this.result = '';
-    this.result = finalList.toString().replace(/[,.]/g, '');
   }
   findElement(temArray: any[], arr: any[]) {
     let modifiedArray = []
@@ -48,5 +36,42 @@ export class AppComponent {
     this.afterSelection = []
     this.afterSelection = [...this.mainArray[this.selectionArray.indexOf(e.target.value)]]
     this.display();
+  }
+  finalResult() {
+    this.temArray.forEach((char, index) => {
+      let latterInfirstPlace = this.afterSelection.filter((nString: string) => {
+        return nString.indexOf(char) == 0;
+      });
+      let latterInlastPlace = this.afterSelection.filter((nString: string) => {
+        return nString.indexOf(char) == 2;
+      });
+
+      if (latterInlastPlace.length === 0) {
+        let charIndex = this.temArray.indexOf(char);
+        this.temArray.splice(charIndex, 1);
+        this.temArray.splice(0, 0, char);
+      }
+      if (latterInfirstPlace.length > 0) {
+        let elements = latterInfirstPlace[0].split('>');
+        let firstElementIndex = this.temArray.indexOf(elements[0]);
+        let secondElementIndex = this.temArray.indexOf(elements[1]);
+        if (secondElementIndex > firstElementIndex && secondElementIndex - firstElementIndex != 1) {
+          this.temArray.splice(secondElementIndex, 1);
+          this.temArray.splice(firstElementIndex + 1, 0, elements[1]);
+          if (index == this.temArray.length - 1) {
+            this.finalResult();
+          } else {
+            this.resultWord()
+          }
+        } else {
+         this.resultWord()
+        }
+      }
+    });
+  }
+  resultWord() {
+    let finalList = Array.from(new Set(this.temArray));
+    this.result = '';
+    this.result = finalList.toString().replace(/[,.]/g, '');
   }
 }
